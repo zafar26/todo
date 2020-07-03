@@ -1,23 +1,14 @@
-
+import { useState } from 'react';
 import { ApolloProvider } from '@apollo/client';
 import { client } from '../client'
-
 import { gql } from '@apollo/client';
 
+export default function Home () {
+  const [value, setValue] = useState('');
+  const [arr, setArr] = useState([]);
 
-export default class Home extends React.Component {
-  state={
-    value:"",
-    arr:[]
-  }
-  handleChange(e){
-    console.log(e.target)
-    this.setState({
-     value : e.target.value 
-    })
-  }
-    handleSubmit() { 
-    let value = this.state.value
+  const handleChange = (e) =>{ setValue(e.target.value) }
+  const handleSubmit = () =>{ 
     client
     .mutate({
       mutation: gql`mutation MyMutation {
@@ -28,10 +19,9 @@ export default class Home extends React.Component {
     })
     .then(result => console.log(result))
     .catch(e=>console.log(e))
-    this.setState({ value : "" })
+    setValue("") 
   }
-  
-   handleDelete (id) {
+  const handleDelete =(id) =>{
     client
     .mutate({
       mutation: gql`mutation MyMutation {
@@ -44,35 +34,32 @@ export default class Home extends React.Component {
     .catch(e=>console.log(e))
   }
   
-  componentDidMount(){
-    client.query({
-      query: gql`query MyQuery {
-        todo {
-          data
-          id
-        }
-      }`
-    })
-    .then(r=> this.setState({arr :r.data.todo}))
-    .catch(e=> console.log(e))
-  }
-  render(){
-    return (
-      <ApolloProvider client={client}>
+  client.query({
+    query: gql`query MyQuery {
+      todo {
+        data
+        id
+      }
+    }`
+  })
+  .then(r=> setArr(r.data.todo))
+  .catch(e=> console.log(e))
+  
+  return (
+    <ApolloProvider client={client}>
+    <div>
       <div>
-        <div>
-          <input type="text"  value={this.state.value} onChange={e=>this.handleChange(e)}/>
-          <button onClick={e=>this.handleSubmit()}>Submit</button>
-        </div>
-        <div>
-          {this.state.arr && this.state.arr.map(e => 
-                                <div>
-                                  <input disabled value = {e.data}/>
-                                  <button id={e.id} onClick= {e=> this.handleDelete(e.target.id)}>X</button> 
-                                </div>)}
-        </div>
+        <input type="text"  value={value} onChange={e=>handleChange(e)}/>
+        <button onClick={e=>handleSubmit()}>Submit</button>
       </div>
-      </ApolloProvider>
-    )
-  }
+      <div>
+        {arr && arr.map(e => 
+                              <div>
+                                <input disabled value = {e.data}/>
+                                <button id={e.id} onClick= {e=> handleDelete(e.target.id)}>X</button> 
+                              </div>)}
+      </div>
+    </div>
+    </ApolloProvider>
+  )
 }
